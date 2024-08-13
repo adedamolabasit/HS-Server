@@ -1,10 +1,12 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { classifyHs } from './classifyHs'; // Import your classification function
+import cors from 'cors';
+import { classifyHs } from './classifyHs'; 
 
 const app = express();
 const port = process.env.PORT;
 
+app.use(cors()); 
 app.use(bodyParser.json());
 
 app.post('/classify-hs', async (req, res) => {
