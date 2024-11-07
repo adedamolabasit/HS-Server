@@ -1,5 +1,19 @@
 import { OpenAI } from "openai";
-require('dotenv/config');
+require("dotenv/config");
+
+interface OrganizationParams {
+  id?: string;
+  orgId?: string;
+  communityType: string;
+  context: string;
+  hateCategories: string[];
+  model: string;
+  isPrivate: boolean;
+}
+
+interface modelConfigParams {
+  orgData: OrganizationParams;
+}
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -96,22 +110,36 @@ const chain_ot = [
 ];
 
 export async function classifyHs(
-  message: string,
-  verbose = false,
-  extra_notes = ""
+  message: string | undefined,
+  fileContent?: string | undefined,
+  config?: {
+    id?: string;
+    orgId?: string;
+    communityType: string;
+    context: string;
+    hateCategories: string[];
+    model: string;
+    isPrivate: boolean;
+  } | undefined
 ): Promise<any> {
   const prompt = `
     DEFINITIONS:
     Consider the following definition: '${HS_definition}'.
 
     INSTRUCTION:
-    Using the provided definition of hate speech, classify the following fragment from a chat as either hate speech with respect to one or more of protected characteristics from the following list: '${protected_characteristics_str}', or not hate speech with respect to the protected characteristics from the following list: '${protected_characteristics_str}'.
-    '${extra_notes}'
+    Using the provided definition of hate speech, classify the following fragment from a chat as either hate speech with respect to one or more of protected characteristics from the following list: '${
+      config?.hateCategories || protected_characteristics_str
+    }', or not hate speech with respect to the protected characteristics from the following list: '${
+    config?.hateCategories
+  }'.
+    '${config?.context  }'
 
     OUTPUT:
     The output should only contain 3 elements:
     1) "hate speech" or "not hate speech",
-    2) one or more protected characteristic labels from the list: '${protected_characteristics_str}',
+    2) one or more protected characteristic labels from the list: '${
+      config?.hateCategories || protected_characteristics_str
+    }',
     3) the probability with two decimal points.
 
     OUTPUT FORMAT:
@@ -128,23 +156,20 @@ export async function classifyHs(
         : ""
     }
 
-    MESSAGE:
-    '${message}'. 
-    `;
+   MESSAGE: ${message || ""} ${fileContent || ""}`.trim();
 
-  if (verbose) {
-    console.log(prompt);
-  }
 
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: config?.model || "gpt-4-turbo",
       temperature: 0.0,
       messages: [{ role: "user", content: prompt }],
     });
 
+
     return response.choices[0].message.content;
   } catch (error: any) {
+    console.log(error, "error>>")
     throw new Error(`Error with OpenAI API: ${error.message}`);
   }
 }
