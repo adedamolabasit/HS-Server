@@ -102,12 +102,13 @@ app.post("/classify-hs", upload.single("file"), async (req, res) => {
 
     const classification = await classifyHs(
       message,
-      fileContent,
-      JSON.parse(orgData)
+      fileContent || undefined,
+      JSON.parse(orgData) || undefined
     );
 
     res.json({ classification });
   } catch (error: any) {
+    console.log(error,"error")
     res.status(500).json({ error: error.message });
   }
 });
