@@ -105,6 +105,8 @@ app.post("/classify-hs", upload.single("file"), async (req, res) => {
     //   JSON.parse(orgData)
     // );
 
+    console.log(classification)
+
     res.json({ classification });
   } catch (error: any) {
     console.log(error, "error");
