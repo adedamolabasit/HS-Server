@@ -1,6 +1,7 @@
 import TelegramBot, { Message } from "node-telegram-bot-api";
 import { classifyHs } from "./classifyHs";
 import { cleanClassificationString } from "./server";
+import express from "express"; // To handle incoming webhook requests
 
 interface UserState {
   name?: string;
@@ -14,7 +15,36 @@ interface UserState {
 const userStates: { [key: number]: UserState } = {};
 
 export const initializeBot = (token: string): void => {
-  const bot = new TelegramBot(token, { polling: true });
+  const bot = new TelegramBot(token);
+
+  const isProduction = process.env.PROD === "true";
+  const webhookUrl = process.env.URL;
+  const port = Number(process.env.PORT) || 3000;
+
+  if (isProduction && webhookUrl) {
+    const app = express();
+
+    app.use(express.json());
+
+    app.post(`/bot${token}`, (req, res) => {
+      bot.processUpdate(req.body);
+      res.sendStatus(200);
+    });
+
+    bot
+      .setWebHook(`${webhookUrl}/bot${token}`)
+      .then(() => console.log(`Webhook set at: ${webhookUrl}/bot${token}`))
+      .catch((err) => console.error("Error setting webhook:", err));
+
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } else {
+    bot
+      .startPolling()
+      .then(() => console.log("Bot is running in polling mode"))
+      .catch((err) => console.error("Error starting polling:", err));
+  }
 
   bot.onText(/\/start(.*)/, (msg: Message, match: RegExpExecArray | null) => {
     const chatId = msg.chat.id;
@@ -99,7 +129,6 @@ export const initializeBot = (token: string): void => {
 
           const classification = await classifyHs(text);
 
-          // Check if no classification result is returned
           if (!classification) {
             bot.sendMessage(chatId, `_Scanning failed, please try again._`, {
               parse_mode: "Markdown",
