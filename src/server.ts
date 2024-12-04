@@ -19,11 +19,32 @@ const token = process.env.TELEGRAMTOKEN  as string;
 initializeBot(token);
 
 export const cleanClassificationString = (classificationStr: string) => {
+  // Try to match array-like strings using regex
   const match = classificationStr.match(/\[(.*?)\]/);
   if (match) {
-    const cleanedArrayStr = match[0].replace(/'/g, '"').replace(/\s/g, "");
-    return JSON.parse(cleanedArrayStr);
+    try {
+      // Convert to valid JSON format and parse
+      const cleanedArrayStr = match[0].replace(/'/g, '"').replace(/\s/g, "");
+      return JSON.parse(cleanedArrayStr);
+    } catch (error) {
+      console.error("Error parsing array-like string:", error);
+    }
   }
+
+  // Handle descriptive text format
+  if (classificationStr.includes("hate speech")) {
+    const classification = "hate speech";
+    const protectedCharacteristicMatch = classificationStr.match(/protected characteristic of (\w+)/i);
+    const protectedCharacteristic = protectedCharacteristicMatch
+      ? [protectedCharacteristicMatch[1]]
+      : [];
+    const probabilityMatch = classificationStr.match(/probability.*?(\d\.\d+)/i);
+    const probability = probabilityMatch ? [parseFloat(probabilityMatch[1])] : [1.0]; // Default to 1.0 if not found
+
+    return [classification, protectedCharacteristic, probability];
+  }
+
+  // Return null if the input cannot be parsed
   return null;
 };
 
