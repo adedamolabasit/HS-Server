@@ -21,26 +21,9 @@ initializeBot(token);
 export const cleanClassificationString = (classificationStr: string) => {
   const match = classificationStr.match(/\[(.*?)\]/);
   if (match) {
-    try {
-      const cleanedArrayStr = match[0].replace(/'/g, '"').replace(/\s/g, "");
-      return JSON.parse(cleanedArrayStr);
-    } catch (error) {
-      console.error("Error parsing array-like string:", error);
-    }
+    const cleanedArrayStr = match[0].replace(/'/g, '"').replace(/\s/g, "");
+    return JSON.parse(cleanedArrayStr);
   }
-
-  if (classificationStr.includes("hate speech")) {
-    const classification = "hate speech";
-    const protectedCharacteristicMatch = classificationStr.match(/protected characteristic of (\w+)/i);
-    const protectedCharacteristic = protectedCharacteristicMatch
-      ? [protectedCharacteristicMatch[1]]
-      : [];
-    const probabilityMatch = classificationStr.match(/probability.*?(\d\.\d+)/i);
-    const probability = probabilityMatch ? [parseFloat(probabilityMatch[1])] : [1.0]; // Default to 1.0 if not found
-
-    return [classification, protectedCharacteristic, probability];
-  }
-
   return null;
 };
 
