@@ -143,7 +143,7 @@ export const initializeBot = (token: string): void => {
 
           let message;
 
-          if (classify === "hatespeech") {
+          if (classify === "hate speech") {
             message =
               "This message has been flagged for containing inappropriate content. Please contact the moderator if you think this is a mistake.";
           } else {
