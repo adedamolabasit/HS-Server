@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 const token = process.env.TELEGRAMTOKEN  as string;
 initializeBot(token);
 
-const cleanClassificationString = (classificationStr: string) => {
+export const cleanClassificationString = (classificationStr: string) => {
   try {
     const cleanedStr = classificationStr.replace(/(^"|"$)/g, "");
     if (cleanedStr.startsWith("[") && cleanedStr.endsWith("]")) {
