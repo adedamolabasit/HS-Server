@@ -16,7 +16,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 const token = process.env.TELEGRAMTOKEN  as string;
-initializeBot(token);
+// initializeBot(token);
 
 export const cleanClassificationString = (classificationStr: string) => {
   try {
