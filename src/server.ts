@@ -18,34 +18,33 @@ app.use(bodyParser.json());
 const token = process.env.TELEGRAMTOKEN  as string;
 initializeBot(token);
 
-export const cleanClassificationString = (classificationStr: string) => {
-  // Try to match array-like strings using regex
-  const match = classificationStr.match(/\[(.*?)\]/);
-  if (match) {
-    try {
-      // Convert to valid JSON format and parse
-      const cleanedArrayStr = match[0].replace(/'/g, '"').replace(/\s/g, "");
-      return JSON.parse(cleanedArrayStr);
-    } catch (error) {
-      console.error("Error parsing array-like string:", error);
+const cleanClassificationString = (classificationStr: string) => {
+  try {
+    const cleanedStr = classificationStr.replace(/(^"|"$)/g, "");
+    if (cleanedStr.startsWith("[") && cleanedStr.endsWith("]")) {
+      return eval(cleanedStr);
     }
-  }
+  } catch (error) {}
 
-  // Handle descriptive text format
   if (classificationStr.includes("hate speech")) {
     const classification = "hate speech";
-    const protectedCharacteristicMatch = classificationStr.match(/protected characteristic of (\w+)/i);
+    const protectedCharacteristicMatch = classificationStr.match(
+      /protected characteristic of (\w+)/i
+    );
     const protectedCharacteristic = protectedCharacteristicMatch
       ? [protectedCharacteristicMatch[1]]
       : [];
-    const probabilityMatch = classificationStr.match(/probability.*?(\d\.\d+)/i);
-    const probability = probabilityMatch ? [parseFloat(probabilityMatch[1])] : [1.0]; // Default to 1.0 if not found
+    const probabilityMatch = classificationStr.match(
+      /probability.*?(\d\.\d+)/i
+    );
+    const probability = probabilityMatch
+      ? [parseFloat(probabilityMatch[1])]
+      : [1.0]; 
 
     return [classification, protectedCharacteristic, probability];
   }
 
-  // Return null if the input cannot be parsed
-  return null;
+  return ["unknown", [], [0]];
 };
 
 const client = new Client({
