@@ -72,7 +72,9 @@ client.on("messageCreate", async (msg: any) => {
   const classify = rawData[0];
   const definition = rawData[1];
 
-  if (classify === "hatespeech") {
+  console.log(classify,"yyyyyy")
+
+  if (classify[0] === "hatespeech") {
     msg.reply(
       "This message has been flagged for containing inappropriate content. Please contact the moderator if you think this is a mistake."
     );
