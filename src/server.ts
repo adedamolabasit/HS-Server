@@ -74,7 +74,7 @@ client.on("messageCreate", async (msg: any) => {
 
   console.log(classify,"yyyyyy")
 
-  if (classify[0] === "hatespeech") {
+  if (classify === "hate speech") {
     msg.reply(
       "This message has been flagged for containing inappropriate content. Please contact the moderator if you think this is a mistake."
     );
