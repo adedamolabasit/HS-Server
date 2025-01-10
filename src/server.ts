@@ -39,7 +39,7 @@ export const cleanClassificationString = (classificationStr: string) => {
     );
     const probability = probabilityMatch
       ? [parseFloat(probabilityMatch[1])]
-      : [1.0]; 
+      : [1.0];
 
     return [classification, protectedCharacteristic, probability];
   }
@@ -72,7 +72,7 @@ client.on("messageCreate", async (msg: any) => {
   const classify = rawData[0];
   const definition = rawData[1];
 
-  console.log(classify,"yyyyyy")
+  console.log(classify, "yyyyyy");
 
   if (classify === "hate speech") {
     msg.reply(
@@ -118,16 +118,13 @@ app.post("/classify-hs", upload.single("file"), async (req, res) => {
         .replace(/\n{2,}/g, "\n\n");
     }
 
-    console.log(fileContent, "ew");
+    let classification;
 
-    const classification = await classifyHs(message);
-    // const classification = await classifyHs(
-    //   message,
-    //   fileContent,
-    //   JSON.parse(orgData)
-    // );
-
-    console.log(classification)
+    if (fileContent) {
+      classification = await classifyHs(fileContent);
+    } else {
+      classification = await classifyHs(message);
+    }
 
     res.json({ classification });
   } catch (error: any) {
