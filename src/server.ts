@@ -7,6 +7,7 @@ import mammoth from "mammoth";
 import { classifyHs } from "./classifyHs";
 const { Client, GatewayIntentBits } = require("discord.js");
 import { initializeBot } from "./telegramBot";
+import { config } from "dotenv";
 
 const app = express();
 const port = process.env.PORT;
@@ -15,8 +16,32 @@ const discordToken = process.env.DISCORDTOKEN;
 app.use(cors());
 app.use(bodyParser.json());
 
-const token = process.env.TELEGRAMTOKEN  as string;
+const token = process.env.TELEGRAMTOKEN as string;
 initializeBot(token);
+
+const defaultConfig = {
+  id: "0x1A2b3C4d5E6f7890ABcDeF1234567890abCdEf12",
+  orgId: "1",
+  communityType: "RnDAO.AI",
+  context:
+    "RnDAO is a majority male web 3 community working on developing CollabTech across US, Europe. There are also a number of high profile female members of the team.",
+  protectedCharacteristics: [
+    "Age",
+    "Disability",
+    "Gender reassignment",
+    "Marriage and civil partnership",
+    "Pregnancy and maternity",
+    "Race",
+    "Religion or belief",
+    "Sex",
+    "Sexual orientation",
+  ],
+  model: "gpt-3.5-turbo",
+  isPrivate: false,
+  languagesUsed: "English, Spanish",
+  geography: "US, UK, Europe, East Asia, Latin America.",
+  safeguardingFocus: "Misogyny, Women in Tech",
+};
 
 export const cleanClassificationString = (classificationStr: string) => {
   try {
@@ -65,14 +90,14 @@ client.on("messageCreate", async (msg: any) => {
     return;
   }
 
-  const classification = await classifyHs(msg.content);
+  const classification = await classifyHs({
+    config: { ...defaultConfig },
+    message: msg.content,
+  });
 
   const rawData = cleanClassificationString(classification);
 
   const classify = rawData[0];
-  const definition = rawData[1];
-
-  console.log(classify, "yyyyyy");
 
   if (classify === "hate speech") {
     msg.reply(
@@ -121,14 +146,17 @@ app.post("/classify-hs", upload.single("file"), async (req, res) => {
     let classification;
 
     if (fileContent) {
-      classification = await classifyHs(fileContent);
+      classification = await classifyHs({
+        config: JSON.parse(orgData),
+        message,
+        fileContent,
+      });
     } else {
-      classification = await classifyHs(message);
+      classification = await classifyHs({ config: JSON.parse(orgData), message });
     }
 
     res.json({ classification });
   } catch (error: any) {
-    console.log(error, "error");
     res.status(500).json({ error: error.message });
   }
 });

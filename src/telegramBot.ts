@@ -14,6 +14,30 @@ interface UserState {
 
 const userStates: { [key: number]: UserState } = {};
 
+const defaultConfig = {
+  id: "0x1A2b3C4d5E6f7890ABcDeF1234567890abCdEf12",
+  orgId: "1",
+  communityType: "RnDAO.AI",
+  context:
+    "RnDAO is a majority male web 3 community working on developing CollabTech across US, Europe. There are also a number of high profile female members of the team.",
+  protectedCharacteristics: [
+    "Age",
+    "Disability",
+    "Gender reassignment",
+    "Marriage and civil partnership",
+    "Pregnancy and maternity",
+    "Race",
+    "Religion or belief",
+    "Sex",
+    "Sexual orientation",
+  ],
+  model: "gpt-3.5-turbo",
+  isPrivate: false,
+  languagesUsed: "English, Spanish",
+  geography: "US, UK, Europe, East Asia, Latin America.",
+  safeguardingFocus: "Misogyny, Women in Tech",
+};
+
 export const initializeBot = (token: string): void => {
   const bot = new TelegramBot(token);
 
@@ -127,7 +151,10 @@ export const initializeBot = (token: string): void => {
         if (text) {
           bot.sendMessage(chatId, `_Scanning..._`, { parse_mode: "Markdown" }); // Responds with "Scanning..." in italics
 
-          const classification = await classifyHs(text);
+          const classification = await classifyHs({
+            config: defaultConfig,
+            message: text,
+          });
 
           if (!classification) {
             bot.sendMessage(chatId, `_Scanning failed, please try again._`, {
